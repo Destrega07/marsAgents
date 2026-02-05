@@ -5,7 +5,7 @@ import type { StaticImageData } from "next/image"
 import { useEffect, useMemo, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
-import { HelpCircle, Trash2, X } from "lucide-react"
+import { HelpCircle, Menu, Trash2, X } from "lucide-react"
 
 import radarIcon from "@/assets/images/商机小雷达.png"
 import gjIcon from "@/assets/images/杠精粉碎者.png"
@@ -73,6 +73,7 @@ export default function Dashboard() {
   const [activeAgent, setActiveAgent] = useState<AgentId>("zdx")
   const [draft, setDraft] = useState("")
   const [isSending, setIsSending] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [introSeenByAgent, setIntroSeenByAgent] = useState<Record<AgentId, boolean>>({
     zdx: false,
     gjfs: false
@@ -106,6 +107,7 @@ export default function Dashboard() {
   const switchAgent = (agent: AgentId) => {
     if (agent === activeAgent) return
     setActiveAgent(agent)
+    setIsSidebarOpen(false)
     if (!introSeenByAgent[agent]) setIntroModalAgent(agent)
   }
 
@@ -221,18 +223,31 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-white">
-      <aside className="w-[320px] shrink-0 bg-marsBlue text-white">
-        <div className="px-6 py-6">
+      <div className={["sm:hidden", isSidebarOpen ? "fixed inset-0 z-40 bg-black/40" : "hidden"].join(" ")} onMouseDown={() => setIsSidebarOpen(false)} />
+
+      <aside
+        className={[
+          "bg-marsBlue text-white",
+          "fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] -translate-x-full transition-transform duration-200 ease-out",
+          isSidebarOpen ? "translate-x-0" : "",
+          "sm:static sm:z-auto sm:w-[320px] sm:shrink-0 sm:translate-x-0 sm:transition-none"
+        ].join(" ")}
+      >
+        <div className="flex items-center justify-between px-6 py-6 sm:py-6">
           <div className="text-lg font-semibold leading-tight">Mars-Wrigley 销售赋能中心</div>
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(false)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 sm:hidden"
+            aria-label="关闭菜单"
+            title="关闭菜单"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         <nav className="px-3">
-          <SidebarItem
-            disabled
-            icon={radarIcon}
-            label="商机小雷达（敬请期待）"
-            onClick={() => undefined}
-          />
+          <SidebarItem disabled icon={radarIcon} label="商机小雷达（敬请期待）" onClick={() => undefined} />
           <SidebarItem
             active={activeAgent === "zdx"}
             icon={AGENTS.zdx.icon}
@@ -252,6 +267,15 @@ export default function Dashboard() {
         <header className="border-b border-marsGray px-6 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsSidebarOpen(true)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-marsGray bg-white text-slate-700 hover:bg-marsGray/40 sm:hidden"
+                aria-label="打开菜单"
+                title="打开菜单"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
               <div className="h-9 w-9 overflow-hidden rounded-lg bg-marsGray">
                 <Image
                   src={AGENTS[activeAgent].icon}
